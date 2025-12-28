@@ -13,7 +13,7 @@ pub fn parse_input() -> Result<(String, File), io::Error> {
         None => {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "Enter a pattern!",
+                "Invalid Input: Enter a pattern!",
             ));
         }
     };
