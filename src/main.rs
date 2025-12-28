@@ -12,4 +12,6 @@ fn main() {
     for line in find_lines_with_pattern(pattern.as_str(), &mut file) {
         println!("{}", line);
     }
+    println!("{}", pattern);
+    println!("{:#?}", file);
 }
