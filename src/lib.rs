@@ -1,4 +1,9 @@
-use std::{env, fs::File, io};
+use std::env;
+use std::{
+    fs::File,
+    io,
+    io::{BufRead, BufReader},
+};
 
 pub fn parse_input() -> Result<(String, File), io::Error> {
     let args: Vec<String> = env::args().collect();
@@ -27,6 +32,15 @@ pub fn parse_input() -> Result<(String, File), io::Error> {
             ));
         }
     };
-
     Ok((pattern, file))
+}
+
+pub fn find_lines_with_pattern(pattern: &str, file: &mut File) -> Vec<String> {
+    let reader = BufReader::new(file);
+
+    reader
+        .lines()
+        .filter_map(Result::ok)
+        .filter(|line| line.contains(pattern))
+        .collect()
 }
