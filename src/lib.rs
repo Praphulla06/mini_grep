@@ -1,72 +1,47 @@
-use std::env;
-use std::{
-    fs::File,
-    io,
-    io::{BufRead, BufReader},
-};
+use std::io;
 
-pub fn parse_input() -> Result<(String, File), io::Error> {
-    let args: Vec<String> = env::args().collect();
+#[derive(Debug)]
+pub struct Config {
+    pattern: String,
+    filenames: Vec<String>,
+    ignore_case: bool,
+    invert_match: bool,
+    line_number: bool,
+    whole_word: bool,
+    only_matching: bool,
+}
+pub fn parse_args() -> Result<Config, String> {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.is_empty() {
+        return Err("Usage: mini_grep [flags] pattern file1 [file2 ...]".to_string());
+    }
 
-    let mut pattern_index = 1;
-    let mut file_index = 2;
+    let mut config = Config {
+        pattern: String::new(),
+        filenames: Vec::new(),
+        ignore_case: false,
+        invert_match: false,
+        line_number: false,
+        whole_word: false,
+        only_matching: false,
+    };
 
-    if let Some(input) = args.get(1) {
-        if input.starts_with("_") {
-            parse_flags(&args);
-            pattern_index = 2;
-            file_index = 3;
+    let mut args_iter = args.iter();
+    while let Some(arg) = args_iter.next() {
+        match arg.as_str() {
+            "-i" => config.ignore_case = true,
+            "-v" => config.invert_match = true,
+            "-n" => config.line_number = true,
+            "-w" => config.whole_word = true,
+            "-o" => config.only_matching = true,
+            _ if config.pattern.is_empty() => config.pattern = arg.clone(),
+            _ => config.filenames.push(arg.clone()),
         }
     }
-    let pattern = match args.get(pattern_index) {
-        Some(p) => p.to_string(),
-        None => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "Invalid Input: Enter a pattern!",
-            ));
-        }
-    };
-    let file: File = match args.get(file_index) {
-        Some(filename) => match File::open(filename) {
-            Ok(file) => file,
-            Err(e) => {
-                println!("File index: {}", file_index);
-                return Err(io::Error::new(io::ErrorKind::InvalidInput, e));
-            }
-        },
-        None => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidFilename,
-                "Invalid Input: Enter a filename",
-            ));
-        }
-    };
-    println!("File index: {}", pattern_index);
-    println!("File index: {}", file_index);
-    Ok((pattern, file))
-}
 
-fn parse_flags(args: &Vec<String>) {
-    let flag: String = match args.get(2) {
-        Some(flag) => match flag.as_str() {
-            "_i" => format!("Case insensitive matching"),
-            "_v" => format!("Invert match"),
-            "_n" => format!("Show line number"),
-            "_w" => format!("Whole word matching"),
-            "_o" => format!("Print only matching part"),
-            _ => format!("Invalid flag"),
-        },
-        None => String::new(),
-    };
-}
+    if config.pattern.is_empty() || config.filenames.is_empty() {
+        return Err("Pattern or filename missing".to_string());
+    }
 
-pub fn find_lines_with_pattern(pattern: &str, file: &mut File) -> Vec<String> {
-    let reader = BufReader::new(file);
-
-    reader
-        .lines()
-        .filter_map(Result::ok)
-        .filter(|line| line.contains(pattern))
-        .collect()
+    Ok(config)
 }
