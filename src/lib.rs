@@ -16,9 +16,6 @@ pub fn parse_input() -> Result<(String, File), io::Error> {
             parse_flags(&args);
             pattern_index = 2;
             file_index = 3;
-        } else {
-            pattern_index = 1;
-            file_index = 2;
         }
     }
     let pattern = match args.get(pattern_index) {
